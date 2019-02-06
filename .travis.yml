@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t pkraus138/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run plraus138/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t pkraus138/multi-client ./client
+  - docker build -t pkraus138/multi-nginx ./nginx
+  - docker build -t pkraus138/multi-server ./server
+  - docker build -t pkraus138/multi-worker ./worker
+  # Log in to Docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Now take above images and push to Docker Hub
+  - docker push pkraus138/multi-client
+  - docker push pkraus138/multi-nginx
+  - docker push pkraus138/multi-server
+  - docker push pkraus138/multi-worker
